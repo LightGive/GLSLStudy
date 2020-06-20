@@ -11,7 +11,6 @@ uniform vec2 resolution;
 uniform float volume;
 uniform sampler2D spectrum;
 uniform sampler2D samples;
-uniform sampler2D backbuffer;
 
 float noise (in vec2 st)
 {
@@ -31,8 +30,7 @@ float fbm (in vec2 st) {
     float value = 0.0;
     float amplitude = .5;
     float frequency = 0.;
-    //
-    // Loop of octaves
+
     for (int i = 0; i < OCTAVES; i++) {
         value += amplitude * noise(st);
         st *= 2.;
@@ -46,5 +44,8 @@ void main()
 {
   vec2 p = (gl_FragCoord.xy * 2. - resolution) / min(resolution.x, resolution.y);
   vec2 uv = gl_FragCoord.xy / resolution;
+  vec4 tes = texture2D(samples, p);
+
+  p*= tes.x;
   gl_FragColor = vec4(p,0.0,0.0);
 }
