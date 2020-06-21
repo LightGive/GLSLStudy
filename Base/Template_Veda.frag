@@ -34,6 +34,7 @@ float fbm (in vec2 st) {
     for (int i = 0; i < OCTAVES; i++) {
         value += amplitude * noise(st);
         st *= 2.;
+
         amplitude *= .5;
     }
     return value;
@@ -46,6 +47,6 @@ void main()
   vec2 uv = gl_FragCoord.xy / resolution;
   vec4 tes = texture2D(samples, p);
 
-  p*= tes.x;
+  
   gl_FragColor = vec4(p,0.0,0.0);
 }
