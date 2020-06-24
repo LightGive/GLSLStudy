@@ -55,5 +55,6 @@ void main()
 {
   vec2 p = (gl_FragCoord.xy * 2. - resolution) / min(resolution.x, resolution.y);
   vec2 uv = gl_FragCoord.xy / resolution;
-  gl_FragColor = vec4(p,0.0,0.0);
+
+  gl_FragColor = vec4(vec3 (fbm(p)),0.0);
 }
