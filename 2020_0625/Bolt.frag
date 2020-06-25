@@ -28,6 +28,16 @@ float noise (in vec2 st)
     return mix(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
 }
 
+float linearstep(float begin, float end, float t)
+{
+  return clamp((t - begin) / (end - begin), 0.0, 1.0);
+}
+
+float easeInOutQuint(float x)
+{
+  return x < 0.5 ?( 16. * x * x * x * x * x) :( 1. - pow(-2. * x + 2., 5.) / 2.);
+}
+
 #define OCTAVES 6
 float fbm (in vec2 st) {
     // Initial values
@@ -44,19 +54,38 @@ float fbm (in vec2 st) {
     return value;
 }
 
-float linearstep(float begin, float end, float t)
-{
-  return clamp((t - begin) / (end - begin), 0.0, 1.0);
-}
-
-float easeInOutQuint(float x)
-{
-  return x < 0.5 ?( 16. * x * x * x * x * x) :( 1. - pow(-2. * x + 2., 5.) / 2.);
-}
 
 void main()
 {
   vec2 p = (gl_FragCoord.xy * 2. - resolution) / min(resolution.x, resolution.y);
   vec2 uv = gl_FragCoord.xy / resolution;
-  gl_FragColor = vec4(p,0.0,0.0);
+  vec3 fc;
+
+  float interval = 1.5;
+  float size = 0.1;
+  const int l = 20;
+  for(int i=0;i<l;i++)
+  {
+    float cTime = time + (float(i)/ float(l))*interval;
+    float t = easeInOutQuint(mod(cTime,interval)/interval);
+    float st1 = random(vec2(floor(cTime/interval)+(1.0/float(i))))*2.0 - 1.0;
+    float st2 = random(vec2(floor(cTime/interval)+(1.0/float(i))+0.01))*2.0-1.0;
+    vec2 center =vec2(st1,st2);
+    float c =1.0 - step(size, length(p-center));
+    float inc = 1.0-step(t*size,length(p-center));
+    float ring = clamp(c-inc,0.0,1.0);
+    fc += vec3(ring);
+
+  }
+
+   float w = texture2D(samples,vec2(abs(p.y)),0.0).r;
+  // float a = degrees( atan(p.y,p.x))/360.0;
+  // float s = texture2D(spectrum,vec2(abs(p.y),0.0)).r;
+  // float wave =  0.01 / abs( p.y - sin(p.x+time+w));
+  // fc = vec3(wave)*vec3(0.0,0.1,0.5);
+  //fc = vec3(1.0);
+
+
+  //fc += w ;
+  gl_FragColor = vec4(fc,0.0);
 }

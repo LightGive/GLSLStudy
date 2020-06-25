@@ -1,14 +1,10 @@
-/*{
-  "audio": true,
-  "Frameskip": 10,
-}*/
-
  #define PI 3.141592653589793
  #define PI2 PI * 2.
  #define repeat(p, span) mod(p, span) - (0.5 * span)
  #define rot(a) mat2(cos(a),sin(a),-sin(a),cos(a))
  #define random(st) fract(sin(dot(st.xy,vec2(12.9898,78.233)))*43758.5453123)
 
+/*{ "audio": true }*/
 precision mediump float;
 uniform float time;
 uniform vec2 resolution;
@@ -54,9 +50,11 @@ float easeInOutQuint(float x)
   return x < 0.5 ?( 16. * x * x * x * x * x) :( 1. - pow(-2. * x + 2., 5.) / 2.);
 }
 
+
 void main()
 {
   vec2 p = (gl_FragCoord.xy * 2. - resolution) / min(resolution.x, resolution.y);
   vec2 uv = gl_FragCoord.xy / resolution;
-  gl_FragColor = vec4(p,0.0,0.0);
+
+  gl_FragColor = vec4(vec3(0.0),0.0);
 }
