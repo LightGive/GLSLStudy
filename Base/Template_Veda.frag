@@ -1,6 +1,5 @@
 /*{
   "audio": true,
-  "Frameskip": 10,
 }*/
 
  #define PI 3.141592653589793
@@ -8,7 +7,6 @@
  #define repeat(p, span) mod(p, span) - (0.5 * span)
  #define rot(a) mat2(cos(a),sin(a),-sin(a),cos(a))
  #define random(st) fract(sin(dot(st.xy,vec2(12.9898,78.233)))*43758.5453123)
- #define easeInOutQuint(x)  x < 0.5 ?( 16. * x * x * x * x * x) :( 1. - pow(-2. * x + 2., 5.) / 2.)
 
 precision mediump float;
 uniform float time;
@@ -31,7 +29,6 @@ float noise (in vec2 st)
 
 #define OCTAVES 6
 float fbm (in vec2 st) {
-    // Initial values
     float value = 0.0;
     float amplitude = .5;
     float frequency = 0.;
@@ -39,31 +36,14 @@ float fbm (in vec2 st) {
     for (int i = 0; i < OCTAVES; i++) {
         value += amplitude * noise(st);
         st *= 2.;
-
         amplitude *= .5;
     }
     return value;
 }
 
-
-
 void main()
 {
   vec2 p = (gl_FragCoord.xy * 2. - resolution) / min(resolution.x, resolution.y);
-  float st = step(0.4,length(p));
-
   vec2 uv = gl_FragCoord.xy / resolution;
-  float interval = 0.05;
-  float lineCount = 25.;
-
-  float t = floor((time/interval));
-  float ran = random(vec2(t));
-  float a = degrees(atan(p.y,p.x))/360.*lineCount;
-  float c = 1.0 -(2./length(p));
-  float n = step(0.84, noise(vec2(ran,a)*lineCount))+c;
-  vec3 fc;
-  fc =  vec3(n);
-
-
-  gl_FragColor = vec4(fc,0.0);
+  gl_FragColor = vec4(p,0.0,0.0);
 }
