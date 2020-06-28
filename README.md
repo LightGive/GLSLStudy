@@ -2,4 +2,4 @@
 
 # Best
 - Loading
-![demo](https://github.com/LightGive/GLSLStudy.wiki/images/Loading.gif)
+![demo](https://raw.github.com/wiki/LightGive/GLSLStudy/images/Loading.gif)
