@@ -1,5 +1,5 @@
 # GLSLStudy
+I'm uploading something made with GLSL.
 
-# Best
-- Loading
-![demo](https://github.com/LightGive/GLSLStudy/images/Loading.gif)
+## Best
+![loading](https://raw.github.com/wiki/LightGive/GLSLStudy/images/Loading.gif)
