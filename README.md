@@ -1,6 +1,6 @@
 # GLSLStudy
 I'm uploading something made with GLSL.<br>
-The state of study is delivered live on YouTube.
+The state of study is delivered live on YouTube.<br>
 https://www.youtube.com/channel/UC7Z9c0xoLSMpmFqJ8TmmYQQ?view_as=subscriber
 
 ## Best
