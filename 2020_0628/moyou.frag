@@ -41,27 +41,13 @@ float fbm (in vec2 st) {
     return value;
 }
 
-
-
-
-
-
 void main()
 {
-  vec2 p = (gl_FragCoord.xy * 2. - resolution) / min(resolution.x, resolution.y);
-  vec2 uv = gl_FragCoord.xy / resolution;
-  float spd = 0.1;
-  vec3 fc;
-  vec3 sky = vec3(0.1,0.3,0.8)+vec3(fbm(p+time*spd));
-  fc = sky;
-  float t = mod(time,1.0);
-  float maxHei = 0.05;
-  float horLine = 1.0-(((mix(0.0,maxHei,t)*noise(vec2(p.x*10.))) /abs(p.y)));
-
-  if(horLine < 0.0)
-  {
-    fc= vec3(noise(vec2(p.x*30.))*0.4  );
-  }
-
-  gl_FragColor = vec4(fc,0.0);
+  vec2 rep = vec2(5.0,5.0);
+  vec2 r = resolution/rep;
+  vec2 coord = mod(gl_FragCoord.xy,r);
+  vec2 p = (coord * 2. - r) / min(r.x, r.y);
+  vec2 off = (floor(gl_FragCoord.xy / r.xy) / rep);
+  float c = 0.05 / length(p);
+  gl_FragColor = vec4(off,0.0,0.0);
 }
