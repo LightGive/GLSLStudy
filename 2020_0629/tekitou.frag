@@ -43,7 +43,28 @@ float fbm (in vec2 st) {
 
 void main()
 {
-  vec2 p = (gl_FragCoord.xy * 2. - resolution) / min(resolution.x, resolution.y);
-  vec2 uv = gl_FragCoord.xy / resolution;
-  gl_FragColor = vec4(p,0.0,0.0);
+  vec2 rep = vec2(10.0);
+  vec2 r = resolution/rep;
+  vec2 coord = mod(gl_FragCoord.xy,r);
+  vec2 p = (coord)/min(r.x,r.y);
+  vec2 off = floor(gl_FragCoord.xy/r.xy)/rep;
+  float interval = 1.0;
+  float t = mod(time,interval);
+  float l = t/interval;
+
+  vec3 blue = vec3(0.1,0.3,1.);
+  vec3 green = vec3(0.3,1.0,0.1);
+  float sinL = sin(l*PI2 +length(off*PI))*0.5+0.5;
+  float cosL = cos(l*PI2+length(off+PI))*0.5+.5;
+
+  vec3 c1 = mix(blue,green,sinL);
+  vec3 c2 = mix(green,blue,sinL);
+
+  float rotTime = time*2.0;
+  float rotTime2 = -time*2.0;
+  vec2 p1 = mat2(cos(rotTime),sin(rotTime),-sin(rotTime),cos(rotTime))*p;
+  vec2 p2 = mat2(cos(rotTime2),sin(rotTime2),-sin(rotTime2),cos(rotTime2))*p;
+  vec3 tri1 = vec3(step(sinL*2.0 ,p1.x+p1.y)*c1);
+  vec3 tri2 = vec3(step(cosL*2.0 ,p2.x+p2.y)*c2);
+  gl_FragColor = vec4((tri1 + tri2)*0.8,1.0);
 }
