@@ -94,15 +94,9 @@ vec3 sdBezier(vec2 A, vec2 B, vec2 C, vec2 p)
    return vec3(sqrt(r.x), s*length(dp), r.y + et);
 
 #else
-
-   // If we don't care about endpoint extension, it's simpler.
-
    vec4 r = (d1 < d2) ? vec4(d1, t.x, dp1) : vec4(d2, t.y, dp2);
-
-   // Sign is just cross product with gradient
    vec2 g = 2.*b*r.y + c;
    float s =  sign(g.x*r.w - g.y*r.z);
-
    float dist = sqrt(r.x);
    return vec3(dist, s*dist, r.y);
 
