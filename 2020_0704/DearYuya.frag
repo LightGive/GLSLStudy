@@ -1,7 +1,3 @@
-/*{
-  "audio": true,
-}*/
-
  #define PI 3.141592653589793
  #define PI2 PI * 2.
  #define repeat(p, span) mod(p, span) - (0.5 * span)
@@ -28,85 +24,184 @@ float noise (in vec2 st)
     return mix(a, b, u.x) + (c - a)* u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
 }
 
-#define OCTAVES 6
-float fbm (in vec2 st) {
-    float value = 0.0;
-    float amplitude = .5;
-    float frequency = 0.;
-
-    for (int i = 0; i < OCTAVES; i++) {
-        value += amplitude * noise(st);
-        st *= 2.;
-        amplitude *= .5;
-    }
-    return value;
+float Line(vec2 p1, vec2 p2, vec2 p)
+{
+		float x = dot(normalize(p2 - p1), (p - p1));
+		x = clamp(x, 0.0, distance(p1,p2));
+		vec2 np =p1 + normalize(p2 -p1)* x;
+		return distance(p,np);
 }
 
-vec3 solveCubic(float a, float b, float c)
+vec2 Move(vec2 p,float a)
 {
-   float p = b - a*a / 3.0, p3 = p*p*p;
-   float q = a * (2.0*a*a - 9.0*b) / 27.0 + c;
-   float d = q*q + 4.0*p3 / 27.0;
-   float offset = -a / 3.0;
-   if(d >= 0.0) {
-      float z = sqrt(d);
-      vec2 x = (vec2(z, -z) - q) / 2.0;
-      vec2 uv = sign(x)*pow(abs(x), vec2(1.0/3.0));
-      return vec3(offset + uv.x + uv.y);
-   }
-   float v = acos(-sqrt(-27.0 / p3) * q / 2.0) / 3.0;
-   float m = cos(v), n = sin(v)*1.732050808;
-   return vec3(m + m, -n - m, n - m) * sqrt(-p / 3.0) + offset;
-}
-vec3 sdBezier(vec2 A, vec2 B, vec2 C, vec2 p)
-{
-   B = mix(B + vec2(1e-4), B, abs(sign(B * 2.0 - A - C)));
-   vec2 a = B - A, b = A - B * 2.0 + C, c = a * 2.0, d = A - p;
-   vec3 k = vec3(3.*dot(a,b),2.*dot(a,a)+dot(d,b),dot(d,a)) / dot(b,b);
-   vec2 t = clamp(solveCubic(k.x, k.y, k.z).xy, 0.0, 1.0);
-   vec2 dp1 = d + (c + b*t.x)*t.x;
-   float d1 = dot(dp1, dp1);
-   vec2 dp2 = d + (c + b*t.y)*t.y;
-   float d2 = dot(dp2, dp2);
+  float cnt = 82.;
+  float lerp = a/cnt;
+  float interval = 1.0;
+  float t = mod(time,interval)/interval;
 
-   // note: 3rd root is actually never closest, we can just ignore it
-
-#if ENDPOINTS == 1
-
-   // Find closest distance and t
-   vec2 r = (d1 < d2) ? vec2(d1, t.x) : vec2(d2, t.y);
-
-   // Find on which side (t=0 or t=1) is extension
-   vec2 e = vec2(step(0.,-r.y),step(1.,r.y));
-
-   // Calc. gradient
-   vec2 g = 2.*b*r.y + c;
-
-   // Calc. extension to t
-   float et = (e.x*dot(-d,g) + e.y*dot(p-C,g))/dot(g,g);
-
-   // Find closest point on curve with extension
-   vec2 dp = d + (c + b*r.y)*r.y + et*g;
-
-   // Sign is just cross product with gradient
-   float s =  sign(g.x*dp.y - g.y*dp.x);
-
-   return vec3(sqrt(r.x), s*length(dp), r.y + et);
-
-#else
-   vec4 r = (d1 < d2) ? vec4(d1, t.x, dp1) : vec4(d2, t.y, dp2);
-   vec2 g = 2.*b*r.y + c;
-   float s =  sign(g.x*r.w - g.y*r.z);
-   float dist = sqrt(r.x);
-   return vec3(dist, s*dist, r.y);
-
-#endif
+  float ang = lerp*PI2;
+  return mix(vec2(sin(ang),cos(ang)),p,t);
 }
 
 void main()
 {
   vec2 p = (gl_FragCoord.xy * 2. - resolution) / min(resolution.x, resolution.y);
-  vec2 uv = gl_FragCoord.xy / resolution;
+  vec3 fc;
+  float lineLengh = 0.001;
+  //lineLengh /  Line( Move(vec2(,),1.0),Move(vec2(,),1.0),p);
+  float h1 =lineLengh /  Line( Move(vec2(-0.95,0.95),0.0),Move(vec2(-0.95,0.4),1.0),p);
+  float h2 =lineLengh /  Line( Move(vec2(-0.95,0.65),2.0),Move(vec2(-0.7,0.65),3.0),p);
+  float h3 =lineLengh /Line( Move(vec2(-0.7,0.95),4.0),Move(vec2(-0.7,0.4),5.0),p);
+  float p1 =lineLengh /Line( Move(vec2(-0.1,0.95),6.0),Move(vec2(-0.1,0.4),7.0),p);
+  float p2 =lineLengh /Line( Move(vec2(-0.1,0.95),8.0),Move(vec2(0.1,0.8),9.0),p);
+  float p3 =lineLengh /Line( Move(vec2(-0.1,0.65),10.0),Move(vec2(0.1,0.8),11.0),p);
+  float p4 =lineLengh /Line( Move(vec2(0.3,0.95),12.0),Move(vec2(0.3,0.4),13.0),p);
+  float p5 =lineLengh /Line( Move(vec2(0.3,0.95),14.0),Move(vec2(0.5,0.8),15.0),p);
+  float p6 =lineLengh /Line( Move(vec2(0.3,0.65),16.0),Move(vec2(0.5,0.8),17.0),p);
+  float a1 = lineLengh/Line( Move(vec2(-0.4,0.95),18.0),Move(vec2(-0.5,0.4),19.0),p);
+  float a2 = lineLengh/Line( Move(vec2(-0.4,0.95),20.0),Move(vec2(-0.3,0.4),21.0),p);
+  float a3 = lineLengh/Line( Move(vec2(-0.35,0.65),22.0),Move(vec2(-0.45,0.65),23.0),p);
+  float y1 =lineLengh /Line( Move(vec2(0.95,0.95),24.0),Move(vec2(0.8,0.65),25.0),p);
+  float y2 =lineLengh /Line( Move(vec2(0.65,0.95),26.0),Move(vec2(0.8,0.65),27.0),p);
+  float y3 =lineLengh /Line( Move(vec2(0.8,0.65),28.0),Move(vec2(0.8,0.4),29.0),p);
+  float b1 =lineLengh /  Line( Move(vec2(-0.95,0.3),30.0),Move(vec2(-0.95,-0.3),31.0),p);
+  float b2 =lineLengh /  Line( Move(vec2(-0.95,0.3),32.0),Move(vec2(-0.75,0.15),33.0),p);
+  float b3 =lineLengh /  Line( Move(vec2(-0.95,0.0),34.0),Move(vec2(-0.75,0.15),35.0),p);
+  float b4 =lineLengh /  Line( Move(vec2(-0.95,-0.3),36.0),Move(vec2(-0.75,-0.15),37.0),p);
+  float b5 =lineLengh /  Line( Move(vec2(-0.95,0.0),38.0),Move(vec2(-0.75,-0.15),39.0),p);
+  float i1 =lineLengh /  Line( Move(vec2(-0.4,0.3),40.0),Move(vec2(-0.4,-0.3),41.0),p);
+  float i2 =lineLengh /  Line( Move(vec2(-0.5,0.3),42.0),Move(vec2(-0.3,0.3),43.0),p);
+  float i3 =lineLengh /  Line( Move(vec2(-0.5,-0.3),44.0),Move(vec2(-0.3,-0.3),45.0),p);
+  float r1 =lineLengh /Line( Move(vec2(-0.1,0.3),46.0),Move(vec2(-0.1,-0.3),47.0),p);
+  float r2 =lineLengh /Line( Move(vec2(-0.1,0.3),48.0),Move(vec2(0.1,0.15),49.0),p);
+  float r3 =lineLengh /Line( Move(vec2(-0.1,0.0),50.0),Move(vec2(0.1,0.15),51.0),p);
+  float r4 =lineLengh /Line( Move(vec2(-0.1,0.0),52.0),Move(vec2(0.1,-0.3),53.0),p);
+  float t1 =lineLengh /Line( Move(vec2(0.3,0.3),54.0),Move(vec2(0.5,0.3),55.0),p);
+  float t2 =lineLengh /Line( Move(vec2(0.4,0.3),56.0),Move(vec2(0.4,-0.3),57.0),p);
+  float h4 =lineLengh /Line( Move(vec2(0.95,0.3),58.0),Move(vec2(0.95,-0.3),59.0),p);
+  float h5 =lineLengh /Line( Move(vec2(0.65,0.3),60.0),Move(vec2(0.65,-0.3),61.0),p);
+  float h6 =lineLengh /Line( Move(vec2(0.95,0.0),62.0),Move(vec2(0.65,0.0),63.0),p);
+  float d1 =lineLengh /Line( Move(vec2(-0.5,-0.4),64.0),Move(vec2(-0.5,-0.95),65.0),p);
+  float d2 =lineLengh /Line( Move(vec2(-0.5,-0.4),66.0),Move(vec2(-0.3,-0.65),67.0),p);
+  float d3 =lineLengh /Line( Move(vec2(-0.5,-0.95),68.0),Move(vec2(-0.3,-0.65),69.0),p);
+  float a4 = lineLengh/Line( Move(vec2(-0.1,-0.95),70.0),Move(vec2(0.0,-0.4),71.0),p);
+  float a5 = lineLengh/Line( Move(vec2(0.1,-0.95),72.0),Move(vec2(0.0,-0.4),73.0),p);
+  float a6 = lineLengh/Line( Move(vec2(-0.05,-0.7),74.0),Move(vec2(0.05,-0.7),75.0),p);
+  float y4 =lineLengh /Line( Move(vec2(0.3,-0.4),76.0),Move(vec2(0.4,-0.7),77.0),p);
+  float y5 =lineLengh /Line( Move(vec2(0.5,-0.4),78.0),Move(vec2(0.4,-0.7),79.0),p);
+  float y6 =lineLengh /Line( Move(vec2(0.4,-0.7),80.0),Move(vec2(0.4,-0.95),81.0),p);
 
-  gl_FragColor = vec4(p,0.0,0.0);
+  fc += h1+h2+ h3;
+  fc += a1+a2+a3;
+  fc += p1+p2+p3+p4+p5+p6;
+  fc += y1+y2+y3;
+  fc += b1+b2+b3+b4+b5;
+  fc += i1+i2+i3;
+  fc += r1+r2+r3+r4;
+  fc += t1+t2;
+  fc += h4+h5+h6;
+  fc += d1+d2+d3;
+  fc += a4+a5+a6;
+  fc += y4+y5+y6;
+
+  gl_FragColor = vec4(fc,0.0);
 }
+
+
+
+// 
+//
+//
+// // Author:
+// // Title:
+//
+// #ifdef GL_ES
+// precision mediump float;
+// #endif
+// #define PI 3.141592653589793
+// #define PI2 PI * 2.
+//
+// uniform vec2 u_resolution;
+// uniform vec2 u_mouse;
+// uniform float u_time;
+//
+// float Line(vec2 p1, vec2 p2, vec2 p)
+// {
+// 	float x = dot(normalize(p2 - p1), (p - p1));
+// 	x = clamp(x, 0.0, distance(p1,p2));
+// 	vec2 np =p1 + normalize(p2 -p1)* x;
+//     return distance(p,np);
+// }
+//
+// vec2 Move(vec2 p,float a)
+// {
+//   float cnt = 82.;
+//   float lerp = a/cnt;
+//   float interval = 1.0;
+//   float tim = mod(u_time,interval)/interval;
+//   float ang = lerp*PI2;
+//   return mix(vec2(sin(ang),cos(ang)),p,tim);
+// }
+//
+// void main()
+// {
+//   vec2 p = (gl_FragCoord.xy * 2. - u_resolution) / min(u_resolution.x,u_resolution.y);
+//   vec3 fc;
+//   float lineLengh = 0.001;
+//   float h1 =lineLengh /Line( Move(vec2(-0.95,0.95),0.0),Move(vec2(-0.95,0.4),1.0),p);
+//   float h2 =lineLengh /Line( Move(vec2(-0.95,0.65),2.0),Move(vec2(-0.7,0.65),3.0),p);
+//   float h3 =lineLengh /Line( Move(vec2(-0.7,0.95),4.0),Move(vec2(-0.7,0.4),5.0),p);
+//   float p1 =lineLengh /Line( Move(vec2(-0.1,0.95),6.0),Move(vec2(-0.1,0.4),7.0),p);
+//   float p2 =lineLengh /Line( Move(vec2(-0.1,0.95),8.0),Move(vec2(0.1,0.8),9.0),p);
+//   float p3 =lineLengh /Line( Move(vec2(-0.1,0.65),10.0),Move(vec2(0.1,0.8),11.0),p);
+//   float p4 =lineLengh /Line( Move(vec2(0.3,0.95),12.0),Move(vec2(0.3,0.4),13.0),p);
+//   float p5 =lineLengh /Line( Move(vec2(0.3,0.95),14.0),Move(vec2(0.5,0.8),15.0),p);
+//   float p6 =lineLengh /Line( Move(vec2(0.3,0.65),16.0),Move(vec2(0.5,0.8),17.0),p);
+//   float a1 = lineLengh/Line( Move(vec2(-0.4,0.95),18.0),Move(vec2(-0.5,0.4),19.0),p);
+//   float a2 = lineLengh/Line( Move(vec2(-0.4,0.95),20.0),Move(vec2(-0.3,0.4),21.0),p);
+//   float a3 = lineLengh/Line( Move(vec2(-0.35,0.65),22.0),Move(vec2(-0.45,0.65),23.0),p);
+//   float y1 =lineLengh /Line( Move(vec2(0.95,0.95),24.0),Move(vec2(0.8,0.65),25.0),p);
+//   float y2 =lineLengh /Line( Move(vec2(0.65,0.95),26.0),Move(vec2(0.8,0.65),27.0),p);
+//   float y3 =lineLengh /Line( Move(vec2(0.8,0.65),28.0),Move(vec2(0.8,0.4),29.0),p);
+//   float b1 =lineLengh /Line( Move(vec2(-0.95,0.3),30.0),Move(vec2(-0.95,-0.3),31.0),p);
+//   float b2 =lineLengh /Line( Move(vec2(-0.95,0.3),32.0),Move(vec2(-0.75,0.15),33.0),p);
+//   float b3 =lineLengh /Line( Move(vec2(-0.95,0.0),34.0),Move(vec2(-0.75,0.15),35.0),p);
+//   float b4 =lineLengh /Line( Move(vec2(-0.95,-0.3),36.0),Move(vec2(-0.75,-0.15),37.0),p);
+//   float b5 =lineLengh /Line( Move(vec2(-0.95,0.0),38.0),Move(vec2(-0.75,-0.15),39.0),p);
+//   float i1 =lineLengh /Line( Move(vec2(-0.4,0.3),40.0),Move(vec2(-0.4,-0.3),41.0),p);
+//   float i2 =lineLengh /Line( Move(vec2(-0.5,0.3),42.0),Move(vec2(-0.3,0.3),43.0),p);
+//   float i3 =lineLengh /Line( Move(vec2(-0.5,-0.3),44.0),Move(vec2(-0.3,-0.3),45.0),p);
+//   float r1 =lineLengh /Line( Move(vec2(-0.1,0.3),46.0),Move(vec2(-0.1,-0.3),47.0),p);
+//   float r2 =lineLengh /Line( Move(vec2(-0.1,0.3),48.0),Move(vec2(0.1,0.15),49.0),p);
+//   float r3 =lineLengh /Line( Move(vec2(-0.1,0.0),50.0),Move(vec2(0.1,0.15),51.0),p);
+//   float r4 =lineLengh /Line( Move(vec2(-0.1,0.0),52.0),Move(vec2(0.1,-0.3),53.0),p);
+//   float t1 =lineLengh /Line( Move(vec2(0.3,0.3),54.0),Move(vec2(0.5,0.3),55.0),p);
+//   float t2 =lineLengh /Line( Move(vec2(0.4,0.3),56.0),Move(vec2(0.4,-0.3),57.0),p);
+//   float h4 =lineLengh /Line( Move(vec2(0.95,0.3),58.0),Move(vec2(0.95,-0.3),59.0),p);
+//   float h5 =lineLengh /Line( Move(vec2(0.65,0.3),60.0),Move(vec2(0.65,-0.3),61.0),p);
+//   float h6 =lineLengh /Line( Move(vec2(0.95,0.0),62.0),Move(vec2(0.65,0.0),63.0),p);
+//   float d1 =lineLengh /Line( Move(vec2(-0.5,-0.4),64.0),Move(vec2(-0.5,-0.95),65.0),p);
+//   float d2 =lineLengh /Line( Move(vec2(-0.5,-0.4),66.0),Move(vec2(-0.3,-0.65),67.0),p);
+//   float d3 =lineLengh /Line( Move(vec2(-0.5,-0.95),68.0),Move(vec2(-0.3,-0.65),69.0),p);
+//   float a4 =lineLengh/Line( Move(vec2(-0.1,-0.95),70.0),Move(vec2(0.0,-0.4),71.0),p);
+//   float a5 =lineLengh/Line( Move(vec2(0.1,-0.95),72.0),Move(vec2(0.0,-0.4),73.0),p);
+//   float a6 =lineLengh/Line( Move(vec2(-0.05,-0.7),74.0),Move(vec2(0.05,-0.7),75.0),p);
+//   float y4 =lineLengh /Line( Move(vec2(0.3,-0.4),76.0),Move(vec2(0.4,-0.7),77.0),p);
+//   float y5 =lineLengh /Line( Move(vec2(0.5,-0.4),78.0),Move(vec2(0.4,-0.7),79.0),p);
+//   float y6 =lineLengh /Line( Move(vec2(0.4,-0.7),80.0),Move(vec2(0.4,-0.95),81.0),p);
+//
+//   fc += h1+h2+h3;
+//   fc += a1+a2+a3;
+//   fc += p1+p2+p3+p4+p5+p6;
+//   fc += y1+y2+y3;
+//   fc += b1+b2+b3+b4+b5;
+//   fc += i1+i2+i3;
+//   fc += r1+r2+r3+r4;
+//   fc += t1+t2;
+//   fc += h4+h5+h6;
+//   fc += d1+d2+d3;
+//   fc += a4+a5+a6;
+//   fc += y4+y5+y6;
+//
+//   gl_FragColor = vec4(fc,1.0);
+// }
