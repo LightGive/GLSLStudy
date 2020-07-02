@@ -47,6 +47,6 @@ void main()
   vec2 uv = gl_FragCoord.xy / resolution;
 
 
-  
+
   gl_FragColor = vec4(p,0.0,0.0);
 }
